@@ -1,0 +1,39 @@
+---
+- hosts: junaid
+  become: yes
+  vars:
+    - source_iso: /mnt/Packages/*
+    - dest_iso: /repo-ansible
+  tasks:
+    - name: mount the cd
+      mount:
+        path: /mnt
+        src: /dev/sr1
+        fstype: iso9660
+        opts: loop,ro
+        state: mounted
+    - name: create a directory
+      file:
+        path: "{{dest_iso}}"
+        state: directory
+    - name: yum.repos.d file
+      yum_repository:
+        name: local
+        description: ansible local yum repo-ansible
+        baseurl: file:///repo-ansible
+        enabled: yes
+        gpgcheck: no
+    - name: copy from mnt to repo-ansible
+      shell: cp -a /mnt/Packages/* /repo-ansible
+      force: no
+    - name: createrepo
+      yum:
+        name: createrepo.noarch
+        state: present
+    - name: createrepo command on 
+      shell: createrepo /repo-ansible
+    - name: cleaning the repolist
+      shell: yum celan all
+    - name: repolist
+      shell: yum repolist 
+       
